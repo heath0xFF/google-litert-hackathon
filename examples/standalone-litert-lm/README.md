@@ -2,7 +2,7 @@
 
 Generate a local Gemma 4 E2B response from Python using **LiteRT-LM on CPU**. No App Lab or accessories required.
 
-**Requirements:** Ventuno Q with Ubuntu 24.04 ARM64, Python 3.12, host pip 22.3+, and SSH access. Allow space for the ~2.59 GB model plus Python packages and internet for installation. Tested with `litert-lm-api==0.17.1`.
+**Requirements:** Ventuno Q with Ubuntu 24.04 ARM64, Python 3.12, host pip 22.3+, and SSH access. Allow space for the ~2.59 GB model plus Python packages and internet for installation. Tested with `litert-lm-api==0.18.0`.
 
 **Not for Uno Q:** this pinned native runtime requires ARM LSE instructions absent on Uno Q. It fails before generation; this is not a measured memory limit.
 
@@ -59,6 +59,6 @@ First, try a different task without changing the code:
 
 Then edit the script to send a second message, such as “Which of those ideas needs the least hardware?”, **inside the same conversation's `with` block**. Extract and print its reply as you did for the first message. Compare that with asking the follow-up in a fresh invocation: which context is missing?
 
-Keep the context/output limits while experimenting. The prompt character limit is only an early guard; unusual text may still exceed the token context. Camera input and GPU/NPU acceleration need separate validation; no cloud fallback is configured.
+Keep the context/output limits while experimenting. The prompt character limit is only an early guard; unusual text may still exceed the token context. Camera input and GPU acceleration need separate validation; no cloud fallback is configured. To run Gemma on the Ventuno Q's NPU, with image and audio input, see [standalone LiteRT-LM on the NPU](../standalone-litert-lm-npu/README.md).
 
 Next, try [standalone LiteRT](../standalone-litert/README.md) for a task that needs class scores instead of generated text.

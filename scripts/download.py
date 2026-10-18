@@ -9,9 +9,16 @@ from urllib.request import urlopen
 ROOT = Path(__file__).resolve().parents[1]
 CORAL = "https://raw.githubusercontent.com/google-coral/test_data/104342d2d3480b3e66203073dac24f4e2dbb4c41/"
 GEMMA = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1/"
+EMBEDDING = "https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm/resolve/24d962e906c7d332c6428e71c9676855024569e2/"
 ASSETS = {
     "gemma": [
         (GEMMA, "gemma-4-E2B-it.litertlm", "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"),
+    ],
+    "embedding": [
+        (EMBEDDING, "embeddinggemma-2-740m.litertlm", "e7a8a2204b91e0f96e92960e84a09a89212e1633dcb7575a9bf3378b4df77f4c"),
+    ],
+    "embedding-npu": [  # Ventuno Q (QCS8275) build of the same model
+        (EMBEDDING, "embeddinggemma-2-740m_Qualcomm_QCS8275.litertlm", "4d99a14e63e01cd2947961a1b4939395ad50d3a101a411e05f8397f4a80dbd80"),
     ],
     "vision": [
         (CORAL, "mobilenet_v2_1.0_224_quant.tflite", "7aad0c74c5e3c06e5eb3c827e13304fdd68a83da6087d92ee169c24ff9fd4776"),
