@@ -1,7 +1,8 @@
 """Fetch what the NPU examples need into ./npu (Ventuno Q / Qualcomm QCS8275). Run once on the board.
 
-Nothing here needs sudo. Every download is pinned and SHA-256 verified. Qualcomm's libraries are fetched
-from Qualcomm at setup time and are not redistributed by this repository.
+Nothing here needs sudo. Qualcomm and LiteRT downloads are pinned and SHA-256 verified; libatomic comes
+from the board or its configured apt repositories. Qualcomm's libraries are fetched from Qualcomm at setup
+time and are not redistributed by this repository.
 """
 import argparse
 import hashlib
@@ -155,27 +156,30 @@ def get_runtime_bundle(force):
                     print(f"Verified {name}", flush=True)
 
 
-def get_libatomic():
+def get_libatomic(force):
     """libQnnSystem.so needs libatomic.so.1, which a stock image may not have. Get it without sudo."""
     target = LIB / "libatomic.so.1"
-    if target.is_file():
-        print("Verified libatomic.so.1", flush=True)
+    if not force and target.is_file() and target.stat().st_size > 0:
+        print("Using cached libatomic.so.1 (use --force to replace it)", flush=True)
         return
     found = subprocess.run(["ldconfig", "-p"], capture_output=True, text=True).stdout
     system_copy = next((line.split("=>")[1].strip() for line in found.splitlines() if " libatomic.so.1 " in line), None)
-    if system_copy:
-        shutil.copy(system_copy, target)
-        print("Copied the system libatomic.so.1", flush=True)
-        return
-    print("Fetching libatomic1 from the Ubuntu archive (no sudo needed)...", flush=True)
-    with tempfile.TemporaryDirectory() as work:
-        download = subprocess.run(["apt-get", "download", "libatomic1"], cwd=work, capture_output=True, text=True)
-        packages = list(Path(work).glob("libatomic1_*.deb"))
-        if download.returncode or not packages:
-            raise SystemExit("Could not download libatomic1 (" + download.stderr.strip()[-200:] + ").\n"
-                             "Ask an organizer, or install it yourself with: sudo apt install libatomic1")
-        subprocess.run(["dpkg-deb", "-x", str(packages[0]), work + "/unpacked"], check=True)
-        shutil.copy(Path(work, "unpacked/usr/lib/aarch64-linux-gnu/libatomic.so.1.2.0"), target)
+    # Stage on the same filesystem so an interrupted copy cannot damage the cached library.
+    with tempfile.TemporaryDirectory(dir=LIB) as work:
+        if system_copy:
+            source = Path(system_copy)
+        else:
+            print("Fetching libatomic1 from the Ubuntu archive (no sudo needed)...", flush=True)
+            download = subprocess.run(["apt-get", "download", "libatomic1"], cwd=work, capture_output=True, text=True)
+            packages = list(Path(work).glob("libatomic1_*.deb"))
+            if download.returncode or not packages:
+                raise SystemExit("Could not download libatomic1 (" + download.stderr.strip()[-200:] + ").\n"
+                                 "Ask an organizer, or install it yourself with: sudo apt install libatomic1")
+            subprocess.run(["dpkg-deb", "-x", str(packages[0]), work + "/unpacked"], check=True)
+            source = Path(work, "unpacked/usr/lib/aarch64-linux-gnu/libatomic.so.1.2.0")
+        staged = Path(work) / target.name
+        shutil.copy(source, staged)
+        staged.replace(target)
     print("Installed libatomic.so.1 into npu/lib", flush=True)
 
 
@@ -201,7 +205,7 @@ if __name__ == "__main__":
     (ROOT / "npu").mkdir(exist_ok=True)
     get_qualcomm_libraries(args.force)
     get_runtime_bundle(args.force)
-    get_libatomic()
+    get_libatomic(args.force)
     link_fastrpc()
     print("\nNPU files are ready in ./npu. Next, try the NPU examples:\n"
           "  .venv-litert/bin/python examples/standalone-litert/main.py --backend npu --check\n"

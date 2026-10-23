@@ -26,7 +26,7 @@ python3 -m pip --python .venv-lm/bin/python install -r examples/standalone-liter
 python3 scripts/setup_npu.py
 ```
 
-`setup_npu.py` downloads about 170 MB into `npu/`, checking each file's SHA-256: Qualcomm's NPU libraries (fetched from Qualcomm, not stored in this repository), the LiteRT-LM runtime built for the NPU, and `libatomic`, which a stock image may lack. It needs no `sudo` and is safe to run again.
+`setup_npu.py` downloads about 170 MB into `npu/`. It checks pinned SHA-256 hashes for Qualcomm's NPU libraries (fetched from Qualcomm, not stored in this repository) and the LiteRT-LM runtime built for the NPU. It also copies `libatomic` from the board or gets it through `apt-get download` if missing; that library has no repository-pinned hash. It needs no `sudo` and is safe to run again. Use `--force` to replace cached files, including `libatomic`.
 
 **Get the model.** The NPU build of Gemma 4 E2B for QCS8275 is a different file from the CPU example's `gemma-4-E2B-it.litertlm`: the CPU file contains no NPU graphs, and the NPU file does not run on the CPU. Put it in `models/`.
 
